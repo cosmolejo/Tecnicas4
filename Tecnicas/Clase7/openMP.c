@@ -3,19 +3,19 @@
 
 #include <omp.h> // libreria open mp
 
-#define Nt 100
-
+#define Nt 50
+#define CHUNK 2
 
 int main (void)
 
 {
-  int total=8,id=0,np,i;
+  int total=8,id=0,np,i,chunk;
   double *a, *b, *c, dot;
 
   //int hilos=omp_get_num_threads(); //busca el numero de hilos en ejecucion
   
   system("clear");
-  //omp_set_num_threads(total);  // establece el numero de hilos a usar
+  omp_set_num_threads(total);  // establece el numero de hilos a usar
   
    a= (double *)malloc (Nt*sizeof(double));
    b= (double *)malloc (Nt*sizeof(double));
@@ -28,12 +28,15 @@ int main (void)
        c[i]=0.0;
      }
 
-#pragma omp parallel default(shared) private(id,np,i) //num_threads(3) 
+#pragma omp parallel default(shared) private(id,np,i,CHUNK) //num_threads(3) 
    {
      id=omp_get_thread_num();
      np=omp_get_num_threads();
-#pragma omp for reduction(+:dot) //inicia el entorno para paralelizar un for, reparte las iteraciones en orden
-                                 //reduction hace operaciones de reduccion, hace las operaciones parciales para  hilo paralelizado, la variable es privada
+#pragma omp for reduction(+:dot)  schedule(dynamic,CHUNK)//inicia el entorno para paralelizar un for,
+                                  //reparte las iteraciones en orden
+                                  //reduction hace operaciones de reduccion,
+                                  //hace las operaciones parciales para  hilo paralelizado,
+                                  //la variable es privada
        for (i=0;i<Nt;i++)
 	 {
 	   printf("hola mundo, soy el hilo %d de %d, iteracion: %d\n",id,np,i);
